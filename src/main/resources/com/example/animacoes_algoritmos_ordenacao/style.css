@@ -1,0 +1,38 @@
+.botao-normal {
+    -fx-background-color: #4059a9;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-background-radius: 4px;
+    -fx-border-radius: 4px;
+    -fx-padding: 8 16 8 16;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 4, 0, 0, 2);
+}
+
+.botao-destaque-azul {
+    -fx-background-color: linear-gradient(#4a90e2, #003d99);
+    -fx-text-fill: white;
+    -fx-background-radius: 20;
+    -fx-font-weight: bold;
+}
+
+.botao-destaque-vermelho {
+    -fx-background-color: linear-gradient(#ff4d4d, #990000);
+    -fx-text-fill: white;
+    -fx-background-radius: 20;
+    -fx-font-weight: bold;
+}
+
+.botao-destaque-verde {
+    -fx-background-color: linear-gradient(#66cc66, #336633);
+    -fx-text-fill: white;
+    -fx-background-radius: 20;
+    -fx-font-weight: bold;
+}
+
+.botao-destaque-amarelo {
+    -fx-background-color: linear-gradient(#ffeb3b, #ffc107);
+    -fx-text-fill: black;
+    -fx-background-radius: 20;
+    -fx-font-weight: bold;
+}
