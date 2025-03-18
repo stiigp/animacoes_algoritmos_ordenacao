@@ -28,6 +28,7 @@ public class Main extends Application {
     final int TAMANHO_BOTAO = 25;
     final int LABEL_FONT_SIZE = 12;
     final int BUTTON_FONT_SIZE = 12;
+    final int NUMERO_DE_BUCKETS = 10;
 
     public void geraVetor(int tamanho) {
         int i, pos_x = 10;
@@ -78,7 +79,7 @@ public class Main extends Application {
     }
 
     private void geraBuckets(int numeroDeBuckets) {
-        int maior = max(), intervalo = maior / numeroDeBuckets, i, bucket_pos;
+        int i, bucket_pos;
 
         // o tamanho de um bucket vai ser no máximo o tamanho do próprio vetor, pensando no caso
         // de todos os elementos serem iguais, portanto:
@@ -94,18 +95,132 @@ public class Main extends Application {
 
             pane.getChildren().add(bucket_labels[i]);
         }
+    }
 
-        // percorrer o vetor vendo onde cada elemento se encaixa e então colocando ele no bucket
-        move_todos_os_botoes_para_buckets(intervalo, numeroDeBuckets);
+    private void ordenaBucket(Button[] bucket, int tl) {
+        Task<Void> ordena = new Task<Void>() {
+            int i;
+
+            @Override
+            protected Void call() {
+
+                moveBotaoParaFora(buckets[9][0]);
+
+                return null;
+            }
+        };
+
+        Thread thread = new Thread(ordena);
+        thread.start();
+    }
+
+    private void ordenaBuckets(int numeroDeBuckets) {
+        Task<Void> loop = new Task<Void>() {
+            int i;
+
+            @Override
+            protected Void call() {
+                for (i = 0; i < numeroDeBuckets; i ++) {
+                    ordenaBucket(buckets[i], bucket_tls[i]);
+                }
+                return null;
+            }
+        };
+
+        Thread thread = new Thread(loop);
+        thread.start();
+    }
+
+    private void removeBotao(Button botao) {
+        // essa função existe para que possamos manipular a ui fora da task principal do javafx
+        // não dá pra usar platform.runLater diretamente dentro da task nesse caso, pois há variáveis
+        // não finais em uso, portanto modularizei
+
+        Platform.runLater(() -> {
+            pane.getChildren().remove(botao);
+        });
+    }
+
+    private void adicionaBotao(Button botao) {
+        // função existe pelo mesmo motivo da removeBotao
+
+        Platform.runLater(() -> {
+            pane.getChildren().add(botao);
+        });
     }
 
     private void bucketSort(int numeroDeBuckets) {
+
         geraBuckets(numeroDeBuckets);
+
+        Task<Void> bucketSortTask = new Task<Void>() {
+            @Override
+            protected Void call() {
+                int maior = max(), intervalo = maior / numeroDeBuckets, i, bucket_pos, j, k, nPos;
+                Button botao_j, botao_aux;
+
+                // percorrer o vetor vendo onde cada elemento se encaixa e então colocando ele no bucket
+                for (i = 0; i < tl; i ++) {
+                    bucket_pos = calculaBucket(Integer.parseInt(vet[i].getText()), intervalo, numeroDeBuckets);
+                    move_botoes_para_o_bucket(bucket_pos, i);
+                }
+
+                // percorre cada bucket
+                for (i = 0; i < numeroDeBuckets; i ++) {
+
+                    // isso aqui é um insertionSort
+                    for (j = 1; j < bucket_tls[i]; j ++) {
+
+                        // tem que criar um "clone" do botao
+                        // assim como se faz em um insertionSort
+                        botao_j = new Button(buckets[i][j].getText());
+                        botao_j.setLayoutX(buckets[i][j].getLayoutX());
+                        botao_j.setLayoutY(buckets[i][j].getLayoutY());
+                        botao_j.setMinHeight(buckets[i][j].getMinHeight());
+                        botao_j.setMinWidth(buckets[i][j].getMinWidth());
+                        botao_j.setFont(buckets[i][j].getFont());
+
+                        removeBotao(buckets[i][j]);
+                        adicionaBotao(botao_j);
+                        botao_j.getStyleClass().add("botao-destaque-azul");
+
+                        moveBotaoParaFora(botao_j);
+
+                        k = j - 1;
+
+                        nPos = 0;
+                        while (k >= 0 && Integer.parseInt(buckets[i][k].getText()) > Integer.parseInt(botao_j.getText())) {
+                            buckets[i][k].getStyleClass().add("botao-destaque-vermelho");
+                            moveBotaoParaCima(buckets[i][k]);
+                            buckets[i][k].getStyleClass().clear();
+                            buckets[i][k].getStyleClass().add("button");
+                            buckets[i][k + 1] = buckets[i][k];
+                            k --;
+                            nPos ++;
+                        }
+
+                        moveBotaoParaBaixo(botao_j, nPos);
+
+                        moveBotaoParaDentro(botao_j);
+                        buckets[i][k + 1] = botao_j;
+                        botao_j.getStyleClass().clear();
+                        botao_j.getStyleClass().add("button");
+                    }
+                }
+
+                return null;
+            }
+        };
+
+        Thread thread = new Thread(bucketSortTask);
+        thread.start();
     }
 
     @Override
     public void start(Stage stage) throws Exception
     {
+        bucket_tls = new int[NUMERO_DE_BUCKETS];
+
         stage.setTitle("Pesquisa e Ordenacao");
         pane = new AnchorPane();
         pane.getStylesheets().add(getClass().getResource("/com/example/animacoes_algoritmos_ordenacao/style.css").toExternalForm());
@@ -127,6 +242,12 @@ public class Main extends Application {
                 pane.getChildren().remove(vet[i]);
             }
 
+            for (int i = 0; i < NUMERO_DE_BUCKETS; i ++) {
+                for (int j = 0; j < bucket_tls[i]; j ++) {
+                    pane.getChildren().remove(buckets[i][j]);
+                }
+            }
+
             // feito para evitar tamanho negativo
             // posteriormente talvez adicionar uma mensagem de erro na tela
             if (!texto_tamanho_vetor.startsWith("-")) {
@@ -137,7 +258,7 @@ public class Main extends Application {
         Button botao_bucket_sort = new Button("Bucket Sort");
         botao_bucket_sort.setLayoutX(300); botao_bucket_sort.setLayoutY(10);
         botao_bucket_sort.setOnAction(e -> {
-            bucketSort(10);
+            bucketSort(NUMERO_DE_BUCKETS);
         });
 
         pane.getChildren().add(botao_gera_vetor);
@@ -208,7 +329,7 @@ public class Main extends Application {
                 for (int i = 0; i < 10; i++) {
                     Platform.runLater(() -> vet[indiceElemento].setLayoutY(vet[indiceElemento].getLayoutY() + 5));
                     try {
-                        Thread.sleep(50);
+                        Thread.sleep(15);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -219,7 +340,7 @@ public class Main extends Application {
                 while (vet[indiceElemento].getLayoutX() < coord_x_bucket) {
                     Platform.runLater(() -> vet[indiceElemento].setLayoutX(vet[indiceElemento].getLayoutX() + 1));
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(3);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -228,7 +349,7 @@ public class Main extends Application {
                 while (vet[indiceElemento].getLayoutX() > coord_x_bucket) {
                     Platform.runLater(() -> vet[indiceElemento].setLayoutX(vet[indiceElemento].getLayoutX() - 1));
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(3);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -238,7 +359,7 @@ public class Main extends Application {
                 while (vet[indiceElemento].getLayoutY() < coord_y_no_bucket) {
                     Platform.runLater(() -> vet[indiceElemento].setLayoutY(vet[indiceElemento].getLayoutY() + 1));
                     try {
-                        Thread.sleep(10);
+                        Thread.sleep(3);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -248,7 +369,7 @@ public class Main extends Application {
                 vet[indiceElemento].getStyleClass().clear();
                 vet[indiceElemento].getStyleClass().add("button");
 
-                // aqui vamos colocar o botão vetor do bucket de fato
+                // aqui vamos colocar o botão no vetor do bucket de fato
                 buckets[indiceBucket][bucket_tls[indiceBucket]] = vet[indiceElemento];
                 bucket_tls[indiceBucket] ++;
 
@@ -277,6 +398,7 @@ public class Main extends Application {
                 for (i = 0; i < tl; i ++) {
                     bucket_pos = calculaBucket(Integer.parseInt(vet[i].getText()), intervalo, numeroDeBuckets);
                     move_botoes_para_o_bucket(bucket_pos, i);
+                    moveBotaoParaFora(buckets[9][0]);
                 }
 
                 return null;
@@ -285,6 +407,137 @@ public class Main extends Application {
 
         Thread thread = new Thread(loop);
         thread.start();
+    }
+
+    private void moveBotaoParaFora(Button botao) {
+        Task<Void> moveParaFora = new Task<Void>() {
+            int i;
+
+            @Override
+            protected Void call(){
+                botao.getStyleClass().add("botao-destaque-azul");
+
+                // movendo o elemento i para a lateral
+                for (i = 0; i < 20; i ++) {
+                    Platform.runLater(() -> {
+                        botao.setLayoutX(botao.getLayoutX() + 1);
+                    });
+
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                return null;
+            }
+        };
+
+        Thread thread = new Thread(moveParaFora);
+        thread.start();
+
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    private void moveBotaoParaDentro(Button botao) {
+        Task<Void> moveParaDentro = new Task<Void>() {
+            int j;
+
+            @Override
+            protected Void call() {
+                // movendo o elemento i lateralmente de volta
+                for (j = 0; j < 20; j ++) {
+                    Platform.runLater(() -> {
+                        botao.setLayoutX(botao.getLayoutX() - 1);
+                    });
+
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                botao.getStyleClass().clear();
+                botao.getStyleClass().add("button");
+                return null;
+            }
+        };
+
+        Thread thread = new Thread(moveParaDentro);
+        thread.start();
+
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void moveBotaoParaCima(Button botao) {
+        Task<Void> moveParaCima = new Task<Void>() {
+            int i;
+
+            @Override
+            protected Void call() {
+                for (i = 0; i < 35; i ++) {
+                    Platform.runLater(() -> botao.setLayoutY(botao.getLayoutY() - 1));
+
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                return null;
+            }
+        };
+
+        Thread thread = new Thread(moveParaCima);
+        thread.start();
+
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void moveBotaoParaBaixo(Button botao, int nPosicoes) {
+        Task<Void> moveParaCima = new Task<Void>() {
+            int i;
+
+            @Override
+            protected Void call() {
+                for (i = 0; i < 35 * nPosicoes; i ++) {
+                    Platform.runLater(() -> botao.setLayoutY(botao.getLayoutY() + 1));
+
+                    try {
+                        Thread.sleep(20);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                return null;
+            }
+        };
+
+        Thread thread = new Thread(moveParaCima);
+        thread.start();
+
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
