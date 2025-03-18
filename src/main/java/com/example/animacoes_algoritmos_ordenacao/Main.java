@@ -25,13 +25,15 @@ public class Main extends Application {
     final int COORD_Y_VETOR_PRINCIPAL = 100;
     final int COORD_Y_INICIAL_BUCKET = 570;
     final int COORD_X_INICIAL_BUCKET = 10;
+    final int COORD_X_INICIAL_VETOR = 10;
+    final int ESPACAMENTO_VETOR = 35;
     final int TAMANHO_BOTAO = 25;
     final int LABEL_FONT_SIZE = 12;
     final int BUTTON_FONT_SIZE = 12;
     final int NUMERO_DE_BUCKETS = 10;
 
     public void geraVetor(int tamanho) {
-        int i, pos_x = 10;
+        int i, pos_x = COORD_X_INICIAL_VETOR;
         Random rand = new Random();
 
         tl = 0;
@@ -47,7 +49,7 @@ public class Main extends Application {
             pane.getChildren().add(vet[tl]);
 
             tl ++;
-            pos_x += 35;
+            pos_x += ESPACAMENTO_VETOR;
         }
     }
 
@@ -156,13 +158,13 @@ public class Main extends Application {
         Task<Void> bucketSortTask = new Task<Void>() {
             @Override
             protected Void call() {
-                int maior = max(), intervalo = maior / numeroDeBuckets, i, bucket_pos, j, k, nPos;
+                int maior = max(), intervalo = maior / numeroDeBuckets, i, bucket_pos, j, k, nPos, pos = 0;
                 Button botao_j, botao_aux;
 
                 // percorrer o vetor vendo onde cada elemento se encaixa e então colocando ele no bucket
                 for (i = 0; i < tl; i ++) {
                     bucket_pos = calculaBucket(Integer.parseInt(vet[i].getText()), intervalo, numeroDeBuckets);
-                    move_botoes_para_o_bucket(bucket_pos, i);
+                    move_botao_para_o_bucket(bucket_pos, i);
                 }
 
                 // percorre cada bucket
@@ -208,6 +210,14 @@ public class Main extends Application {
                     }
                 }
 
+                pos = 0;
+                for (i = 0; i < numeroDeBuckets; i ++) {
+                    for (j = 0; j < bucket_tls[i]; j ++) {
+                        moveBotaoParaOVetor(buckets[i][j], pos);
+                        pos ++;
+                    }
+                }
+
                 return null;
             }
         };
@@ -241,11 +251,13 @@ public class Main extends Application {
             for (int i = 0; i < tl; i ++) {
                 pane.getChildren().remove(vet[i]);
             }
+            tl = 0;
 
             for (int i = 0; i < NUMERO_DE_BUCKETS; i ++) {
                 for (int j = 0; j < bucket_tls[i]; j ++) {
                     pane.getChildren().remove(buckets[i][j]);
                 }
+                bucket_tls[i] = 0;
             }
 
             // feito para evitar tamanho negativo
@@ -315,7 +327,7 @@ public class Main extends Application {
         thread.start();
     }
 
-    public void move_botoes_para_o_bucket(int indiceBucket, int indiceElemento)
+    public void move_botao_para_o_bucket(int indiceBucket, int indiceElemento)
     {
         int coord_x_bucket = calculaCoordenadaXBucket(indiceBucket), coord_y_no_bucket = COORD_Y_INICIAL_BUCKET - ((bucket_tls[indiceBucket] + 1) * 35);
 
@@ -327,7 +339,7 @@ public class Main extends Application {
 
                 // descendo o elemento
                 for (int i = 0; i < 10; i++) {
-                    Platform.runLater(() -> vet[indiceElemento].setLayoutY(vet[indiceElemento].getLayoutY() + 5));
+                    Platform.runLater(() -> vet[indiceElemento].setLayoutY(vet[indiceElemento].getLayoutY() + 10));
                     try {
                         Thread.sleep(15);
                     } catch (InterruptedException e) {
@@ -338,18 +350,18 @@ public class Main extends Application {
                 // movendo horizontalmente até a coordenada x do bucket
                 // só vai executar um desses dois whiles
                 while (vet[indiceElemento].getLayoutX() < coord_x_bucket) {
-                    Platform.runLater(() -> vet[indiceElemento].setLayoutX(vet[indiceElemento].getLayoutX() + 1));
+                    Platform.runLater(() -> vet[indiceElemento].setLayoutX(vet[indiceElemento].getLayoutX() + 10));
                     try {
-                        Thread.sleep(3);
+                        Thread.sleep(15);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
 
                 while (vet[indiceElemento].getLayoutX() > coord_x_bucket) {
-                    Platform.runLater(() -> vet[indiceElemento].setLayoutX(vet[indiceElemento].getLayoutX() - 1));
+                    Platform.runLater(() -> vet[indiceElemento].setLayoutX(vet[indiceElemento].getLayoutX() - 10));
                     try {
-                        Thread.sleep(3);
+                        Thread.sleep(15);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
@@ -357,13 +369,17 @@ public class Main extends Application {
 
                 // descendo o elemento até a posição correta dentro do bucket
                 while (vet[indiceElemento].getLayoutY() < coord_y_no_bucket) {
-                    Platform.runLater(() -> vet[indiceElemento].setLayoutY(vet[indiceElemento].getLayoutY() + 1));
+                    Platform.runLater(() -> vet[indiceElemento].setLayoutY(vet[indiceElemento].getLayoutY() + 10));
                     try {
-                        Thread.sleep(3);
+                        Thread.sleep(15);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
+
+                // os incrementos não são feitos de 1 em 1 pixel, ent podem sair da posição desejada
+                vet[indiceElemento].setLayoutY(coord_y_no_bucket);
+                vet[indiceElemento].setLayoutX(coord_x_bucket);
 
                 // retorna o botão pro estilo padrão do javafx
                 vet[indiceElemento].getStyleClass().clear();
@@ -397,7 +413,7 @@ public class Main extends Application {
 
                 for (i = 0; i < tl; i ++) {
                     bucket_pos = calculaBucket(Integer.parseInt(vet[i].getText()), intervalo, numeroDeBuckets);
-                    move_botoes_para_o_bucket(bucket_pos, i);
+                    move_botao_para_o_bucket(bucket_pos, i);
                     moveBotaoParaFora(buckets[9][0]);
                 }
 
@@ -418,9 +434,9 @@ public class Main extends Application {
                 botao.getStyleClass().add("botao-destaque-azul");
 
                 // movendo o elemento i para a lateral
-                for (i = 0; i < 20; i ++) {
+                for (i = 0; i < 5; i ++) {
                     Platform.runLater(() -> {
-                        botao.setLayoutX(botao.getLayoutX() + 1);
+                        botao.setLayoutX(botao.getLayoutX() + 5);
                     });
 
                     try {
@@ -452,9 +468,9 @@ public class Main extends Application {
             @Override
             protected Void call() {
                 // movendo o elemento i lateralmente de volta
-                for (j = 0; j < 20; j ++) {
+                for (j = 0; j < 5; j ++) {
                     Platform.runLater(() -> {
-                        botao.setLayoutX(botao.getLayoutX() - 1);
+                        botao.setLayoutX(botao.getLayoutX() - 5);
                     });
 
                     try {
@@ -512,12 +528,12 @@ public class Main extends Application {
 
     private void moveBotaoParaBaixo(Button botao, int nPosicoes) {
         Task<Void> moveParaCima = new Task<Void>() {
-            int i;
+            int i, posFinal = (int)botao.getLayoutY() + (35 * nPosicoes);
 
             @Override
             protected Void call() {
-                for (i = 0; i < 35 * nPosicoes; i ++) {
-                    Platform.runLater(() -> botao.setLayoutY(botao.getLayoutY() + 1));
+                while (botao.getLayoutY() < posFinal) {
+                    Platform.runLater(() -> botao.setLayoutY(botao.getLayoutY() + 5));
 
                     try {
                         Thread.sleep(20);
@@ -525,6 +541,8 @@ public class Main extends Application {
                         e.printStackTrace();
                     }
                 }
+
+                botao.setLayoutY(posFinal);
 
                 return null;
             }
@@ -538,6 +556,79 @@ public class Main extends Application {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    private void moveBotaoParaOVetor(Button botao, int pos) {
+        Task<Void> moveParaOVetor = new Task<Void>() {
+            @Override
+            protected Void call() {
+
+                // sobe o botão até a linha do vetor
+                while (botao.getLayoutY() > COORD_Y_VETOR_PRINCIPAL) {
+                    Platform.runLater(() -> botao.setLayoutY(botao.getLayoutY() - 5));
+
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                // esses posicionam lateralmente, só executa um dos dois loops
+                while (botao.getLayoutX() > COORD_X_INICIAL_VETOR + (pos * ESPACAMENTO_VETOR)) {
+                    Platform.runLater(() -> botao.setLayoutX(botao.getLayoutX() - 5));
+
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                while (botao.getLayoutX() < COORD_X_INICIAL_VETOR + (pos * ESPACAMENTO_VETOR)) {
+                    Platform.runLater(() -> botao.setLayoutX(botao.getLayoutX() + 5));
+
+                    try {
+                        Thread.sleep(10);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+
+                vet[pos] = botao;
+
+                return null;
+            }
+        };
+
+        Thread thread = new Thread(moveParaOVetor);
+        thread.start();
+
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void moveTodosOsBotoesParaOVetor(int numeroDeBuckets) {
+        Task<Void> moveTodosBotoes = new Task<Void>() {
+            @Override
+            protected Void call(){
+                int pos = 0;
+
+                for (int i = 0; i < numeroDeBuckets; i ++) {
+                    for (int j = 0; j < bucket_tls[i]; j ++) {
+                        moveBotaoParaOVetor(buckets[i][j], pos);
+                        pos ++;
+                    }
+                }
+                return null;
+            }
+        };
+
+        Thread thread = new Thread(moveTodosBotoes);
+        thread.start();
     }
 
     public static void main(String[] args) {
