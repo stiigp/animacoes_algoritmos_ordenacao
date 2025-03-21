@@ -7,10 +7,17 @@ import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.stage.Stage;
 import javafx.scene.text.Font;
 import java.util.Random;
+import javafx.scene.control.Menu;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+
+
 
 public class Main extends Application {
     AnchorPane pane;
@@ -229,7 +236,9 @@ public class Main extends Application {
 
     public void bucket() {
         bucket_tls = new int[NUMERO_DE_BUCKETS];
-        pane = new AnchorPane();
+        //apaga tudo q tava na tela antes
+        pane.getChildren().clear();
+        //pane = new AnchorPane();
         pane.getStylesheets().add(getClass().getResource("/com/example/animacoes_algoritmos_ordenacao/style.css").toExternalForm());
 
         TextField input_tamanho = new TextField();
@@ -275,14 +284,43 @@ public class Main extends Application {
         pane.getChildren().add(botao_bucket_sort);
     }
     @Override
-    public void start(Stage stage) throws Exception
-    {
+    public void start(Stage stage) throws Exception {
 
-        stage.setTitle("Pesquisa e Ordenacao");
+        // Criando a barra de menus
+        MenuBar menuBar = new MenuBar();
+        Menu menu = new Menu("Opções");
+        MenuItem menuItemBucket = new MenuItem("Bucket Sort");
+        MenuItem menuItemRadix = new MenuItem("Radix Sort");
+
+        // Ação para chamar o método bucket() quando o item de menu for selecionado
+        menuItemBucket.setOnAction(e -> bucket());
+        //menuItemBucket.setOnAction(e -> radix());
+
+        menu.getItems().add(menuItemBucket);
+        menu.getItems().add(menuItemRadix);
+        menuBar.getMenus().add(menu);
+
+        // Pane principal
+        pane = new AnchorPane();
+        pane.getChildren().add(menuBar);
+
+        // Definindo a cena
         Scene scene = new Scene(pane, 800, 600);
+        stage.setTitle("Pesquisa e Ordenacao");
         stage.setScene(scene);
         stage.show();
+        // Adicionar o GIF abaixo do menu
+        Image gifImage = new Image(getClass().getResource("/com/example/animacoes_algoritmos_ordenacao/gif-main.gif").toExternalForm());
+        ImageView gifView = new ImageView(gifImage);
+        gifView.setLayoutX(10); // Posição X do GIF
+        gifView.setLayoutY(60); // Posição Y abaixo do menu
+        gifView.setFitWidth(800); // Largura ajustada do GIF
+        gifView.setFitHeight(600); // Altura ajustada do GIF
+
+        // Adicionar o GIF ao pane
+        pane.getChildren().add(gifView);
     }
+
 
     public void move_botoes()
     {
