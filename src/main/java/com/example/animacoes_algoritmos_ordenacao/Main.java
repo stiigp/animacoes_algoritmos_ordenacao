@@ -226,12 +226,9 @@ public class Main extends Application {
         thread.start();
     }
 
-    @Override
-    public void start(Stage stage) throws Exception
-    {
-        bucket_tls = new int[NUMERO_DE_BUCKETS];
 
-        stage.setTitle("Pesquisa e Ordenacao");
+    public void bucket() {
+        bucket_tls = new int[NUMERO_DE_BUCKETS];
         pane = new AnchorPane();
         pane.getStylesheets().add(getClass().getResource("/com/example/animacoes_algoritmos_ordenacao/style.css").toExternalForm());
 
@@ -276,7 +273,12 @@ public class Main extends Application {
         pane.getChildren().add(botao_gera_vetor);
         pane.getChildren().add(input_tamanho);
         pane.getChildren().add(botao_bucket_sort);
+    }
+    @Override
+    public void start(Stage stage) throws Exception
+    {
 
+        stage.setTitle("Pesquisa e Ordenacao");
         Scene scene = new Scene(pane, 800, 600);
         stage.setScene(scene);
         stage.show();
