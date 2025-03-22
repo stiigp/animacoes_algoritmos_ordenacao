@@ -23,7 +23,7 @@ public class Main extends Application {
     private Button[] vet;
     private Button[][] buckets; // os buckets serão uma matriz
     private Label[] bucket_labels, linhasCodigo;
-    private Label intervalo_label, pos_label, i_label;
+    private Label intervalo_label, pos_label, i_label, j_label, k_label, elemento_j_label;
     private int[] bucket_tls;
     private VBox codigoBox;
     private int tl, nLinhasCodigo;
@@ -200,8 +200,8 @@ public class Main extends Application {
     }
 
     private void carregaCodigo(String nome_do_txt) {
-        linhasCodigo = new Label[20];
-        nLinhasCodigo = 0; // funciona como um tl
+        linhasCodigo = new Label[20]; // 20 é um TF arbitrário
+        nLinhasCodigo = 0; // funciona como um TL, é atributo da classe
         Label linhaLabel;
 
         try {
@@ -218,6 +218,10 @@ public class Main extends Application {
             }
 
             Platform.runLater(() -> {
+                // removendo as linhas do código que estava anteriormente
+                codigoBox.getChildren().clear();
+
+                // adicionando as linhas do vetor linhas no vBox
                 for (int i = 0; i < nLinhasCodigo; i ++) {
                     codigoBox.getChildren().add(linhasCodigo[i]);
                 }
@@ -231,11 +235,13 @@ public class Main extends Application {
 
     private void destacaLinha(int indice) {
         Platform.runLater(() -> {
+            // voltando todas as linhas ao normal
             for (int i = 0; i < nLinhasCodigo; i ++) {
                 linhasCodigo[i].getStyleClass().clear();
                 linhasCodigo[i].getStyleClass().add("linha-codigo");
             }
 
+            // destacando a linha desejada
             linhasCodigo[indice].getStyleClass().add("linha-destaque");
         });
     }
@@ -269,6 +275,7 @@ public class Main extends Application {
 
                     removeLabel(i_label);
                     adicionaLabel(i_label, 900, 100, "i: " + i);
+
                     // esses sleeps aqui vao ser executados meramente pra ilustrar a linha que está sendo executada
 
                     destacaLinha(0);
@@ -324,11 +331,43 @@ public class Main extends Application {
                     move_botao_para_o_bucket(bucket_pos, i);
                 }
 
+                carregaCodigo("src/main/resources/com/example/animacoes_algoritmos_ordenacao/insertions_sorts.txt");
+                elemento_j_label = new Label();
+                j_label = new Label();
+                k_label = new Label();
+                adicionaLabel(j_label, 900, 125, "j: ");
+                adicionaLabel(k_label, 900, 150, "k: ");
+                adicionaLabel(elemento_j_label, 900, 175, "elemento_j: ");
+
                 // percorre cada bucket
                 for (i = 0; i < numeroDeBuckets; i ++) {
+                    // destacar o bucket sendo ordenado?
+                    destacaLinha(0);
+                    removeLabel(i_label);
+                    adicionaLabel(i_label, 900, 100, "i: " + i);
+
+                    try {
+                        Thread.sleep(TEMPO_ENTRE_LINHAS);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
 
                     // isso aqui é um insertionSort
                     for (j = 1; j < bucket_tls[i]; j ++) {
+
+                        destacaLinha(1);
+                        removeLabel(j_label);
+                        adicionaLabel(j_label, 900, 125, "j: " + j);
+                        try {
+                            Thread.sleep(TEMPO_ENTRE_LINHAS);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        // destacar a linha 3 (int elemento_j = buckets[i][j];) e colocar um label mostrando o número do elemento_j
+                        destacaLinha(2);
+                        removeLabel(elemento_j_label);
+                        adicionaLabel(elemento_j_label, 900,175, "elemento_j: " + buckets[i][j].getText());
 
                         // tem que criar um "clone" do botao
                         // assim como se faz em um insertionSort
@@ -339,25 +378,71 @@ public class Main extends Application {
                         botao_j.setMinWidth(buckets[i][j].getMinWidth());
                         botao_j.setFont(buckets[i][j].getFont());
 
+                        botao_j.getStyleClass().add("botao-destaque-azul");
+
+                        try {
+                            Thread.sleep(TEMPO_ENTRE_LINHAS);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        botao_j.getStyleClass().clear();
+                        botao_j.getStyleClass().add("button");
+
+                        moveBotaoParaFora(botao_j);
+
                         removeBotao(buckets[i][j]);
                         adicionaBotao(botao_j);
                         botao_j.getStyleClass().add("botao-destaque-azul");
 
-                        moveBotaoParaFora(botao_j);
 
+                        destacaLinha(4);
                         k = j - 1;
+                        removeLabel(k_label);
+                        adicionaLabel(k_label, 900, 150, "k: " + k);
+                        buckets[i][k].getStyleClass().add("botao-destaque-vermelho");
+                        try {
+                            Thread.sleep(TEMPO_ENTRE_LINHAS);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
 
                         nPos = 0;
                         while (k >= 0 && Integer.parseInt(buckets[i][k].getText()) > Integer.parseInt(botao_j.getText())) {
+                            // destacar linha do while + sleep
+                            destacaLinha(5);
+                            try {
+                                Thread.sleep(TEMPO_ENTRE_LINHAS);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+
+                            // destacar linha 7 (buckets[i][k + 1] = buckets[i][k];)
+                            destacaLinha(6);
                             buckets[i][k].getStyleClass().add("botao-destaque-vermelho");
                             moveBotaoParaCima(buckets[i][k]);
                             buckets[i][k].getStyleClass().clear();
                             buckets[i][k].getStyleClass().add("button");
                             buckets[i][k + 1] = buckets[i][k];
+
+                            // destacar linha 8 (k --;)
+                            destacaLinha(7);
                             k --;
+                            try {
+                                Thread.sleep(TEMPO_ENTRE_LINHAS);
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
                             nPos ++;
                         }
 
+                        if (k == j - 1) {
+                            buckets[i][k].getStyleClass().clear();
+                            buckets[i][k].getStyleClass().add("button");
+                        }
+
+                        // destacar linha 11 (buckets[j][k + 1] = elemento_j;)
+                        destacaLinha(10);
                         moveBotaoParaBaixo(botao_j, nPos);
 
                         moveBotaoParaDentro(botao_j);
@@ -673,7 +758,7 @@ public class Main extends Application {
                     Platform.runLater(() -> botao.setLayoutY(botao.getLayoutY() + 5));
 
                     try {
-                        Thread.sleep(20);
+                        Thread.sleep(50);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }

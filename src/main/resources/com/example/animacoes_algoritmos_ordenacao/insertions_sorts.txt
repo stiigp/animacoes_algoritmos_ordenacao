@@ -1,0 +1,13 @@
+for (i = 0; i < numeroDeBuckets; i ++) {
+    for (j = 1; j < tl; j ++) {
+        int elemento_j = buckets[i][j];
+
+        k = j - 1;
+        while (k >= 0 && buckets[i][k] > elemento_j) {
+            buckets[i][k + 1] = buckets[i][k];
+            k --;
+        }
+
+        buckets[j][k + 1] = elemento_j;
+    }
+}

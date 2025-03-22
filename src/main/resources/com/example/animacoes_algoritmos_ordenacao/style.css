@@ -37,3 +37,8 @@
     -fx-background-color: yellow;
     -fx-text-fill: black;
 }
+
+.linha-destaque-interna {
+    -fx-background-color: red;
+    -fx-text-fill: black;
+}
