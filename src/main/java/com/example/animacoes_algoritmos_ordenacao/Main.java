@@ -8,8 +8,13 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import javafx.scene.text.Font;
+
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.Random;
 
 public class Main extends Application {
@@ -17,9 +22,11 @@ public class Main extends Application {
     Button botao_inicio;
     private Button[] vet;
     private Button[][] buckets; // os buckets serão uma matriz
-    private Label[] bucket_labels;
+    private Label[] bucket_labels, linhasCodigo;
+    private Label intervalo_label, pos_label, i_label;
     private int[] bucket_tls;
-    private int tl;
+    private VBox codigoBox;
+    private int tl, nLinhasCodigo;
 
     final int COORD_Y_LABELS_BUCKETS = 600;
     final int COORD_Y_VETOR_PRINCIPAL = 100;
@@ -31,6 +38,9 @@ public class Main extends Application {
     final int LABEL_FONT_SIZE = 12;
     final int BUTTON_FONT_SIZE = 12;
     final int NUMERO_DE_BUCKETS = 10;
+
+    // tempo em milissegundos que vai parar na linha destacada, para aumentar compreensão da animação
+    final int TEMPO_ENTRE_LINHAS = 1000;
 
     public void geraVetor(int tamanho) {
         int i, pos_x = COORD_X_INICIAL_VETOR;
@@ -64,14 +74,28 @@ public class Main extends Application {
         return maior;
     }
 
-    private int calculaBucket(int ele, int intervalo, int numeroDeBuckets) {
+    private int min() {
+        int menor = max(), i;
+
+        for (i = 0; i < tl; i ++){
+            if (Integer.parseInt(vet[i].getText()) < menor)
+                menor = Integer.parseInt(vet[i].getText());
+        }
+
+        return menor;
+    }
+
+    private int calculaBucket(int ele, double intervalo, int numeroBuckets) {
         /*
         * calcula em qual bucket o numero vai, com base no seu valor e no valor do intervalo
         * calculado previamente
         * */
         int res;
 
-        for (res = 0; res < numeroDeBuckets - 1 && ele > intervalo * (res + 1); res ++);
+//        for (res = 0; res < numeroDeBuckets - 1 && ele > intervalo * (res + 1); res ++);
+
+        res = (int)(ele / intervalo);
+
 
         return res;
     }
@@ -151,19 +175,152 @@ public class Main extends Application {
         });
     }
 
+    private void adicionaLabel(Label label, int posx, int posy, String texto) {
+        Platform.runLater(() -> {
+            label.setFont(new Font(24));
+            label.setLayoutX(posx);
+            label.setLayoutY(posy);
+            label.setText(texto);
+            pane.getChildren().add(label);
+        });
+    }
+
+    private void removeLabel(Label label) {
+        Platform.runLater(() -> {
+            pane.getChildren().remove(label);
+        });
+    }
+
+    private void adicionaVBox(VBox box, int posx, int posy) {
+        Platform.runLater(() -> {
+            box.setLayoutX(posx);
+            box.setLayoutY(posy);
+            pane.getChildren().add(box);
+        });
+    }
+
+    private void carregaCodigo(String nome_do_txt) {
+        linhasCodigo = new Label[20];
+        nLinhasCodigo = 0; // funciona como um tl
+        Label linhaLabel;
+
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(nome_do_txt));
+
+            String linha = reader.readLine();
+            while (linha != null) {
+                linhaLabel = new Label(linha);
+                linhaLabel.getStyleClass().add("linha-codigo");
+
+                linhasCodigo[nLinhasCodigo++] = linhaLabel;
+
+                linha = reader.readLine();
+            }
+
+            Platform.runLater(() -> {
+                for (int i = 0; i < nLinhasCodigo; i ++) {
+                    codigoBox.getChildren().add(linhasCodigo[i]);
+                }
+            });
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void destacaLinha(int indice) {
+        Platform.runLater(() -> {
+            for (int i = 0; i < nLinhasCodigo; i ++) {
+                linhasCodigo[i].getStyleClass().clear();
+                linhasCodigo[i].getStyleClass().add("linha-codigo");
+            }
+
+            linhasCodigo[indice].getStyleClass().add("linha-destaque");
+        });
+    }
+
     private void bucketSort(int numeroDeBuckets) {
 
         geraBuckets(numeroDeBuckets);
+        codigoBox = new VBox(5);
+        adicionaVBox(codigoBox, 1200, 50);
 
         Task<Void> bucketSortTask = new Task<Void>() {
             @Override
             protected Void call() {
-                int maior = max(), intervalo = maior / numeroDeBuckets, i, bucket_pos, j, k, nPos, pos = 0;
+                int maior = max(), menor = min(), i, bucket_pos, j, k, nPos, pos = 0;
+                double intervalo = (double) (maior - menor) / numeroDeBuckets;
                 Button botao_j, botao_aux;
+
+                pos_label = new Label();
+                intervalo_label = new Label();
+                i_label = new Label();
+
+                adicionaLabel(intervalo_label, 900, 50, "Intervalo: " + Double.toString(intervalo));
+                adicionaLabel(pos_label, 900, 75, "Bucket: ");
+                adicionaLabel(i_label, 900, 100, "i: ");
+
+                carregaCodigo("src/main/resources/com/example/animacoes_algoritmos_ordenacao/separa_buckets.txt");
 
                 // percorrer o vetor vendo onde cada elemento se encaixa e então colocando ele no bucket
                 for (i = 0; i < tl; i ++) {
+                    vet[i].getStyleClass().add("botao-destaque-azul");
+
+                    removeLabel(i_label);
+                    adicionaLabel(i_label, 900, 100, "i: " + i);
+                    // esses sleeps aqui vao ser executados meramente pra ilustrar a linha que está sendo executada
+
+                    destacaLinha(0);
+                    try {
+                        Thread.sleep(TEMPO_ENTRE_LINHAS);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
                     bucket_pos = calculaBucket(Integer.parseInt(vet[i].getText()), intervalo, numeroDeBuckets);
+                    removeLabel(pos_label);
+                    adicionaLabel(pos_label, 900, 75, "Bucket: " + bucket_pos);
+
+                    // destacar a linha do calcula bucket
+                    destacaLinha(3);
+                    try {
+                        Thread.sleep(TEMPO_ENTRE_LINHAS);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    // destacar a linha do if
+                    destacaLinha(5);
+                    try {
+                        Thread.sleep(TEMPO_ENTRE_LINHAS);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
+                    if (bucket_pos >= numeroDeBuckets) {
+                        // destacar a linha de dentro do if
+                        destacaLinha(6);
+
+                        bucket_pos = numeroDeBuckets - 1;
+
+                        removeLabel(pos_label);
+                        adicionaLabel(pos_label, 900, 75, "Bucket: " + bucket_pos);
+
+                        try {
+                            Thread.sleep(TEMPO_ENTRE_LINHAS);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+
+                    // destacar a linha do move botão
+                    destacaLinha(8);
+
+                    vet[i].getStyleClass().clear();
+                    vet[i].getStyleClass().add("button");
+
                     move_botao_para_o_bucket(bucket_pos, i);
                 }
 
@@ -403,26 +560,6 @@ public class Main extends Application {
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-    }
-
-    public void move_todos_os_botoes_para_buckets(int intervalo, int numeroDeBuckets) {
-        Task<Void> loop = new Task<Void>() {
-            @Override
-            protected Void call() {
-                int i, bucket_pos;
-
-                for (i = 0; i < tl; i ++) {
-                    bucket_pos = calculaBucket(Integer.parseInt(vet[i].getText()), intervalo, numeroDeBuckets);
-                    move_botao_para_o_bucket(bucket_pos, i);
-                    moveBotaoParaFora(buckets[9][0]);
-                }
-
-                return null;
-            }
-        };
-
-        Thread thread = new Thread(loop);
-        thread.start();
     }
 
     private void moveBotaoParaFora(Button botao) {

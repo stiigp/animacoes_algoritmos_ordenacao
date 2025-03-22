@@ -1,0 +1,10 @@
+for (i = 0; i < tl; i ++) {
+    int valor = Integer.parseInt(vet[i].getText());
+
+    int bucket_pos = valor / intervalo;
+
+    if (bucket_pos >= numeroDeBuckets)
+        bucket_pos = numeroDeBuckets - 1;
+
+    move_botao_para_o_bucket(bucket_pos, i);
+}
