@@ -37,7 +37,7 @@ public class Main extends Application {
     final int TAMANHO_BOTAO = 25;
     final int LABEL_FONT_SIZE = 12;
     final int BUTTON_FONT_SIZE = 12;
-    final int NUMERO_DE_BUCKETS = 10;
+    final int NUMERO_DE_BUCKETS = 5;
 
     // tempo em milissegundos que vai parar na linha destacada, para aumentar compreensão da animação
     final int TEMPO_ENTRE_LINHAS = 1000;
@@ -85,7 +85,7 @@ public class Main extends Application {
         return menor;
     }
 
-    private int calculaBucket(int ele, double intervalo, int numeroBuckets) {
+    private int calculaBucket(int ele, double intervalo, int numeroBuckets, int menor) {
         /*
         * calcula em qual bucket o numero vai, com base no seu valor e no valor do intervalo
         * calculado previamente
@@ -94,7 +94,7 @@ public class Main extends Application {
 
 //        for (res = 0; res < numeroDeBuckets - 1 && ele > intervalo * (res + 1); res ++);
 
-        res = (int)(ele / intervalo);
+        res = (int)((ele - menor) / intervalo);
 
 
         return res;
@@ -285,7 +285,7 @@ public class Main extends Application {
                         e.printStackTrace();
                     }
 
-                    bucket_pos = calculaBucket(Integer.parseInt(vet[i].getText()), intervalo, numeroDeBuckets);
+                    bucket_pos = calculaBucket(Integer.parseInt(vet[i].getText()), intervalo, numeroDeBuckets, menor);
                     removeLabel(pos_label);
                     adicionaLabel(pos_label, 900, 75, "Bucket: " + bucket_pos);
 
@@ -346,6 +346,9 @@ public class Main extends Application {
                     removeLabel(i_label);
                     adicionaLabel(i_label, 900, 100, "i: " + i);
 
+                    removeLabel(pos_label);
+                    adicionaLabel(pos_label, 900, 75, "Bucket: " + i);
+
                     try {
                         Thread.sleep(TEMPO_ENTRE_LINHAS);
                     } catch (InterruptedException e) {
@@ -380,6 +383,9 @@ public class Main extends Application {
 
                         botao_j.getStyleClass().add("botao-destaque-azul");
 
+                        removeBotao(buckets[i][j]);
+                        adicionaBotao(botao_j);
+
                         try {
                             Thread.sleep(TEMPO_ENTRE_LINHAS);
                         } catch (InterruptedException e) {
@@ -391,8 +397,6 @@ public class Main extends Application {
 
                         moveBotaoParaFora(botao_j);
 
-                        removeBotao(buckets[i][j]);
-                        adicionaBotao(botao_j);
                         botao_j.getStyleClass().add("botao-destaque-azul");
 
 
@@ -428,6 +432,8 @@ public class Main extends Application {
                             // destacar linha 8 (k --;)
                             destacaLinha(7);
                             k --;
+                            removeLabel(k_label);
+                            adicionaLabel(k_label, 900, 150, "k: " + k);
                             try {
                                 Thread.sleep(TEMPO_ENTRE_LINHAS);
                             } catch (InterruptedException e) {
