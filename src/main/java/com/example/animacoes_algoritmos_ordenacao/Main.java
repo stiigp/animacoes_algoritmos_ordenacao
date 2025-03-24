@@ -317,7 +317,7 @@ public class Main extends Application {
         gifView.setFitWidth(800); // Largura ajustada do GIF
         gifView.setFitHeight(600); // Altura ajustada do GIF
 
-        // Adicionar o GIF ao pane
+        // Adicionar o GIF ao pane yay
         pane.getChildren().add(gifView);
     }
 
