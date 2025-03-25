@@ -22,6 +22,7 @@ public class RadixSort {
 
     private static int tl;
     private static Button[] vet;
+    private static Label radix_lb[];
 
     public static void geraVetor(int tamanho, AnchorPane pane) {
         int i, pos_x = COORD_X_INICIAL_VETOR;
@@ -32,7 +33,7 @@ public class RadixSort {
         int  num=0;
         vet = new Button[tamanho];
 
-        for (i = 0; i < tamanho; i ++) {
+        for (i = 0; i < tamanho/2; i ++) {
 
             num = rand.nextInt(1000);
 
@@ -41,6 +42,30 @@ public class RadixSort {
             if (num>maior) {
                 maior=num;
             }
+
+
+
+            vet[tl].setLayoutX(pos_x);
+            vet[tl].setLayoutY(COORD_Y_VETOR_PRINCIPAL);
+            vet[tl].setMinHeight(TAMANHO_BOTAO); vet[tl].setMinWidth(TAMANHO_BOTAO);
+            vet[tl].setFont(new Font(BUTTON_FONT_SIZE));
+            pane.getChildren().add(vet[tl]);
+
+            tl ++;
+            pos_x += ESPACAMENTO_VETOR;
+        }
+
+        for (i = tamanho/2; i < tamanho; i ++) {
+
+            num = rand.nextInt(100);
+
+            vet[tl] = new Button(Integer.toString(num));
+
+            if (num>maior) {
+                maior=num;
+            }
+
+
 
             vet[tl].setLayoutX(pos_x);
             vet[tl].setLayoutY(COORD_Y_VETOR_PRINCIPAL);
@@ -53,6 +78,24 @@ public class RadixSort {
         }
     }
 
+
+    private static int calculaCoordenadaX(int ini) {
+        return 10 + (80 * ini);
+    }
+
+    public static void gerarLabels(int tlLabels, AnchorPane pane) {
+
+        radix_lb= new Label[tlLabels];
+
+        for (int i=0; i<tlLabels; i++) {
+            radix_lb[i] = new Label(""+i);
+            radix_lb[i].setFont(new Font(LABEL_FONT_SIZE));
+            radix_lb[i].setLayoutX(RadixSort.calculaCoordenadaX(i));
+            radix_lb[i].setLayoutY(COORD_Y_LABELS_BUCKETS);
+            pane.getChildren().add(radix_lb[i]);
+        }
+
+    }
 
     public static void Radix(AnchorPane pane) {
         pane.getChildren().clear();
@@ -70,29 +113,38 @@ public class RadixSort {
         botao_gera_vetor.setOnAction(e -> {
             String texto_tamanho_vetor = input_tamanho.getText();
 
-            // Removendo os botões antigos do vetor antes de gerar um novo
-            for (int i = 0; i < tl; i++) {
-                pane.getChildren().remove(vet[i]);
-            }
-            tl = 0;
-
-            // Verifica se a entrada é válida antes de gerar o vetor
             try {
                 int tamanho = Integer.parseInt(texto_tamanho_vetor);
-                if (tamanho > 0) {
-                    geraVetor(tamanho, pane);
-                } else {
-                    System.out.println("Tamanho inválido! Insira um número maior que zero.");
+
+                // Removendo os botões antigos do vetor antes de gerar um novo
+                for (int i = 0; i < tl; i++) {
+                    pane.getChildren().remove(vet[i]);
                 }
+                tl = 0;
+
+                // Gera um novo vetor
+                geraVetor(tamanho, pane);
             } catch (NumberFormatException ex) {
-                System.out.println("Entrada inválida! Digite um número válido.");
+                System.out.println("Erro: Insira um número válido!");
             }
         });
 
-
         // Adicionando os elementos ao pane
         pane.getChildren().addAll(input_tamanho, botao_gera_vetor);
+
+        // Botão para executar Radix Sort e criar os labels dos buckets
+        Button botao_radix = new Button("Radix Sort");
+        botao_radix.setLayoutX(300);
+        botao_radix.setLayoutY(10);
+
+        botao_radix.setOnAction(e -> {
+            // Criar os labels dos buckets (0 a 9) sem apagar o vetor
+            RadixSort.gerarLabels(10, pane);
+        });
+
+        pane.getChildren().add(botao_radix);
     }
+
 
 
 }
