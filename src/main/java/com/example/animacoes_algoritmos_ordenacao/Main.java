@@ -293,7 +293,9 @@ public class Main extends Application {
         MenuItem menuItemRadix = new MenuItem("Radix Sort");
 
         // Ação para chamar o método bucket() quando o item de menu for selecionado
+
         menuItemBucket.setOnAction(e -> bucket());
+        menuItemRadix.setOnAction(e -> RadixSort.Radix(pane));
         //menuItemBucket.setOnAction(e -> radix());
 
         menu.getItems().add(menuItemBucket);
