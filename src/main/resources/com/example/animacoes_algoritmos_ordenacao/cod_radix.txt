@@ -1,0 +1,19 @@
+for (int j = 0; j < tl; j++) 
+    num = vet[j];
+    int digito = num * Math.pow(i, 10) % 10;
+    vetCounting[digito]++;
+    
+for (int k = 1; k < 10; k++) 
+    vetCounting[k] += vetCounting[k - 1];
+    
+for (int l = tl - 1; l >= 0; l--) 
+    int num = vet[l];
+    int digito = num * Math.pow(i, 10) % 10;
+    vetCopia[vetCounting[digito]] = num;
+    vetCounting[digito]--;
+
+for (int k = 0; k < tl; k++) 
+    vet[k] = vetCopia[k];
+
+for (int l = 0; k < 10; k++) 
+    vetCounting[l] = 0;

@@ -36,3 +36,13 @@
     -fx-background-radius: 20;
     -fx-font-weight: bold;
 }
+.linha-codigo {
+    -fx-font-family: "Montserrat";
+    -fx-font-size: 14px;
+    -fx-text-fill: black;
+}
+
+.linha-destaque {
+    -fx-background-color: yellow;
+    -fx-font-weight: bold;
+}
