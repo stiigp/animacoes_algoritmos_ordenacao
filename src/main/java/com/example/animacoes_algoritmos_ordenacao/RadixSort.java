@@ -61,8 +61,8 @@ public class RadixSort {
     //vetor resultante
     private static final int COORD_Y_TITULO_COPIA = 270;
     private static final int COORD_X_TITULO_COPIA = 70;
-    private static final int COORD_Y_COPIA = 350;
-    private static final int COORD_X_COPIA = 30;
+    private static final int COORD_Y_COPIA = 330;
+    private static final int COORD_X_COPIA = 20;
     private static Button vetRes[];
     private static int tlRes;
 
@@ -197,24 +197,40 @@ public class RadixSort {
 
                                 if (!textos.isEmpty() && index >= 0 && index < textos.size() && textos.get(index) instanceof Text t) {
                                     t.setStyle("-fx-fill: red; -fx-font-size: 12px;");
+
                                     PauseTransition pause = new PauseTransition(Duration.seconds(1));
                                     pause.setOnFinished(ev -> {
                                         int digito = Integer.parseInt(t.getText());
                                         Label label = radix_lb[digito];
+                                        label.setStyle("-fx-font-weight: bold;");
+
                                         int valorAtual = Integer.parseInt(label.getText());
                                         label.setText(String.valueOf(valorAtual + 1));
+
+                                        // Esperar 0.5s pra voltar ao normal
+                                        PauseTransition reset = new PauseTransition(Duration.seconds(0.5));
+                                        reset.setOnFinished(e2 -> label.setStyle("-fx-font-weight: normal;"));
+                                        reset.play();
                                     });
                                     pause.play();
+
                                 } else if (index < 0) {
                                     Label label = radix_lb[0];
-                                    int valorAtual = Integer.parseInt(label.getText());
+
                                     PauseTransition pause = new PauseTransition(Duration.seconds(1));
                                     pause.setOnFinished(ev -> {
+                                        int valorAtual = Integer.parseInt(label.getText());
                                         label.setText(String.valueOf(valorAtual + 1));
+                                        label.setStyle("-fx-font-weight: bold;");
+
+                                        PauseTransition reset = new PauseTransition(Duration.seconds(0.5));
+                                        reset.setOnFinished(e2 -> label.setStyle("-fx-font-weight: normal;"));
+                                        reset.play();
                                     });
                                     pause.play();
                                 }
                             });
+
 
                             try {
                                 Thread.sleep(1500);
@@ -285,7 +301,6 @@ public class RadixSort {
 
                         // Etapa 3: Construir vetor resultante com pausa e destaque
                         CountDownLatch latchMoveBaixo = new CountDownLatch(tl);
-
                         for (int l = tl - 1; l >= 0; l--) {
                             int finalL = l;
                             int finalI1 = i;
@@ -375,6 +390,25 @@ public class RadixSort {
                         }
                     }
 
+                    CountDownLatch latchFinalizacao = new CountDownLatch(tl);
+                    for (int j = 0; j < tl; j++) {
+                        int finalJ = j;
+                        Platform.runLater(() -> {
+                            Button botao = vetRes[finalJ];
+                            if (botao != null) {
+                                move_botao_para_resultante_com_latch(botao, finalJ, latchFinalizacao);
+                            } else {
+                                latchFinalizacao.countDown(); // botão nulo, nada a mover
+                            }
+                        });
+                    }
+
+                    try {
+                        latchFinalizacao.await(); // Garante que todos os botões terminaram de descer
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+
                     return null;
                 }
             };
@@ -414,49 +448,33 @@ public class RadixSort {
                 double destinoY = COORD_Y_COPIA;
                 double destinoX = calculaCoordenadaX(pos, COORD_X_COPIA);
 
-                // Movimento vertical
-                double atualY = button.getLayoutY();
-                while (atualY < destinoY) {
-                    double finalAtualY = atualY;
-                    Platform.runLater(() -> button.setLayoutY(finalAtualY + 5));
-                    atualY += 5;
-                    try {
+                try {
+                    // Movimento vertical
+                    while (button.getLayoutY() < destinoY) {
+                        double novoY = Math.min(button.getLayoutY() + 5, destinoY);
+                        Platform.runLater(() -> button.setLayoutY(novoY));
                         Thread.sleep(20);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
                     }
+
+                    // Movimento horizontal
+                    while (button.getLayoutX() != destinoX) {
+                        double atualX = button.getLayoutX();
+                        double passo = (destinoX > atualX) ? 5 : -5;
+                        double novoX = Math.abs(destinoX - atualX) < 5 ? destinoX : atualX + passo;
+
+                        Platform.runLater(() -> button.setLayoutX(novoX));
+                        Thread.sleep(20);
+                    }
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                } finally {
+                    latch.countDown(); // Garante que mesmo se algo falhar o latch não trava
                 }
 
-                // Movimento horizontal
-                double atualX = button.getLayoutX();
-                if (destinoX > atualX) {
-                    while (atualX < destinoX) {
-                        double finalAtualX = atualX;
-                        Platform.runLater(() -> button.setLayoutX(finalAtualX + 5));
-                        atualX += 5;
-                        try {
-                            Thread.sleep(20);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                } else {
-                    while (atualX > destinoX) {
-                        double finalAtualX = atualX;
-                        Platform.runLater(() -> button.setLayoutX(finalAtualX - 5));
-                        atualX -= 5;
-                        try {
-                            Thread.sleep(20);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                }
-
-                latch.countDown(); // Marca que terminou
                 return null;
             }
         };
+
         new Thread(task).start();
     }
 
@@ -580,11 +598,24 @@ public class RadixSort {
                     }
                 }
 
+                // Remover estilização do TextFlow (deixar todos os Texts com estilo padrão)
+                Platform.runLater(() -> {
+                    if (button.getGraphic() instanceof TextFlow tf) {
+                        for (Node node : tf.getChildren()) {
+                            if (node instanceof Text text) {
+                                text.setStyle(""); // Remove qualquer estilo
+                            }
+                        }
+                    }
+                });
+
                 latch.countDown(); // Marca finalização
                 return null;
             }
         };
+
         new Thread(task).start();
     }
+
 
 }
