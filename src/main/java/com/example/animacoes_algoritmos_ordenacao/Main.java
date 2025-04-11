@@ -298,7 +298,7 @@ public class Main extends Application {
         menuItemRadix.setOnAction(e -> RadixSort.Radix(pane));
         //menuItemBucket.setOnAction(e -> radix());
 
-        menu.getItems().add(menuItemBucket);
+        //menu.getItems().add(menuItemBucket);
         menu.getItems().add(menuItemRadix);
         menuBar.getMenus().add(menu);
 
